@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<h2>Admin</h2>
+
+<input id="rounds" type="number" placeholder="Numero di round" min="1">
+<button id="create">Crea asta</button>
+
+<p>Codice: <strong id="code"></strong></p>
+<div id="qr"></div>
+
+<input id="income" type="number" placeholder="Soldi del round">
+<button id="startRound">Avvia round</button>
+<button id="endRound">Termina round</button>
+
+<h3>Giocatori</h3>
+<ul id="players"></ul>
+
+<h3>Offerte</h3>
+<ul id="offers"></ul>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
