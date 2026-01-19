@@ -1,1 +1,30 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Giocatore</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<h2>Giocatore</h2>
+
+<input id="code" placeholder="Codice asta">
+<input id="nickname" placeholder="Nome">
+<button id="join">Entra</button>
+
+<p>Round: <span id="round">-</span></p>
+<p>Denaro: <span id="money">0</span></p>
+
+<input id="offer" type="number" placeholder="Offerta">
+<button id="sendOffer">Invia offerta</button>
+
+<h3>Offerte</h3>
+<ul id="offers"></ul>
+
+<div id="result"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
