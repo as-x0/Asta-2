@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="it">
+  
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Asta - Home</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
 
+    h1 {
+      color: #333;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: linear-gradient(145deg, #4a90e2, #357ABD);
+      color: white;
+      padding: 12px 28px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      box-shadow: 0 6px 10px rgba(53, 122, 189, 0.4);
+      transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+      cursor: pointer;
+      border: none;
+      margin: 12px;
+      width: 220px;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background: linear-gradient(145deg, #357ABD, #2a5a8e);
+      box-shadow: 0 8px 15px rgba(41, 90, 142, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      background: linear-gradient(145deg, #2a5a8e, #1f3f60);
+      box-shadow: 0 4px 7px rgba(31, 63, 96, 0.8);
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+  
+<body>
+  <button class="btn" onclick="location.href='admin.html'">Avvia una nuova asta</button>
+  <button class="btn" onclick="location.href='player.html'">Partecipa a un'asta</button>
+</body>
+  
+</html>
