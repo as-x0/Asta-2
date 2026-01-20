@@ -70,7 +70,7 @@ io.on("connection", socket => {
       admin: socket.id,
       roundsTotal: rounds,
       roundCurrent: 0,
-      players: [],
+      players: [],   // {id, name, money}
       bids: []
     };
 
@@ -111,7 +111,7 @@ io.on("connection", socket => {
     );
 
     auction.players.forEach((p, i) => {
-      p.money = distribution[i];
+      p.money += distribution[i]; // 🔑 accumulo
       io.to(p.id).emit("round:start", {
         round: auction.roundCurrent,
         money: p.money
@@ -133,7 +133,11 @@ io.on("connection", socket => {
       return socket.emit("error", "Offerta non valida");
 
     auction.bids = auction.bids.filter(b => b.id !== socket.id);
-    auction.bids.push({ id: player.id, name: player.name, amount });
+    auction.bids.push({
+      id: player.id,
+      name: player.name,
+      amount
+    });
 
     auction.bids.sort((a, b) => b.amount - a.amount);
     io.to(code).emit("round:bids", auction.bids);
@@ -146,6 +150,12 @@ io.on("connection", socket => {
 
     const winner = auction.bids[0] || null;
     const isLast = auction.roundCurrent >= auction.roundsTotal;
+
+    // 🔑 solo il vincitore paga
+    if (winner) {
+      const player = auction.players.find(p => p.id === winner.id);
+      if (player) player.money -= winner.amount;
+    }
 
     io.to(code).emit("round:ended", { winner, isLast });
   });
