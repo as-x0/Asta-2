@@ -47,15 +47,23 @@ if (location.pathname.includes("admin")) {
     socket.emit("admin:endRound", code);
   };
 
-  socket.on("round:end", winner => {
+  socket.on("round:ended", data => {
     document.getElementById("winnerText").textContent =
-      winner ? `Vincitore: ${winner.name}` : "Nessuna offerta";
+      data.winner
+        ? `Vincitore: ${data.winner.name}`
+        : "Nessuna offerta";
+  
+    document.getElementById("nextRound").textContent =
+      data.isLast ? "Termina asta" : "Prossimo round";
+  
     show("winner");
   });
 
+
   document.getElementById("nextRound").onclick = () => {
-    show("money");
+    socket.emit("admin:confirmNext", code);
   };
+
 
   socket.on("auction:end", () => show("end"));
 }
