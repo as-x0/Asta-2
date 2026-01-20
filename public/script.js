@@ -65,38 +65,45 @@ if (location.pathname.includes("admin")) {
   socket.on("auction:end", () => show("end"));
 }
 
-/* ========== PLAYER ========== */
+/* ===== PLAYER ===== */
 if (location.pathname.includes("player")) {
 
   let code = "";
+  let myMoney = 0;
   let myName = "";
 
-  document.getElementById("joinBtn").onclick = () => {
-    code = document.getElementById("codeInput").value.toUpperCase();
-    myName = document.getElementById("nameInput").value;
+  joinBtn.onclick = () => {
+    code = codeInput.value.toUpperCase();
+    myName = nameInput.value;
     socket.emit("player:join", { code, name: myName });
   };
 
   socket.on("player:joined", () => show("wait"));
 
   socket.on("round:start", data => {
-    document.getElementById("money").textContent = data.money;
+    myMoney = data.money;
+    money.textContent = myMoney;
     show("bid");
   });
 
-  document.getElementById("bidBtn").onclick = () =>
-    socket.emit("player:bid", {
-      code,
-      amount: +document.getElementById("bidInput").value
-    });
+  bidBtn.onclick = () => {
+    const amount = +bidInput.value;
+
+    if (amount < 1 || amount > myMoney) {
+      alert("Offerta non valida");
+      return;
+    }
+
+    socket.emit("player:bid", { code, amount });
+  };
 
   socket.on("round:bids", bids => {
-    document.getElementById("others").innerHTML =
+    others.innerHTML =
       bids.map(b => `<li>${b.name}: ${b.amount}</li>`).join("");
   });
 
   socket.on("round:ended", data => {
-    document.getElementById("resultText").textContent =
+    resultText.textContent =
       data.winner && data.winner.name === myName
         ? "Hai vinto 🎉"
         : data.winner
@@ -108,4 +115,6 @@ if (location.pathname.includes("player")) {
 
   socket.on("round:wait", () => show("wait"));
   socket.on("auction:end", () => show("end"));
+
+  socket.on("error", msg => alert(msg));
 }
