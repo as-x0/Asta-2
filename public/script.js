@@ -5,17 +5,13 @@ function show(id) {
   document.getElementById(id).hidden = false;
 }
 
-/* ========== ADMIN ========== */
+/* ===== ADMIN ===== */
 if (location.pathname.includes("admin")) {
 
   let code = "";
 
-  document.getElementById("createAuction").onclick = () => {
-    socket.emit(
-      "admin:create",
-      +document.getElementById("roundCount").value
-    );
-  };
+  createAuction.onclick = () =>
+    socket.emit("admin:create", +roundCount.value);
 
   socket.on("admin:created", c => {
     code = c;
@@ -24,41 +20,41 @@ if (location.pathname.includes("admin")) {
   });
 
   socket.on("admin:players", players => {
-    document.getElementById("players").innerHTML =
+    players.innerHTML =
       players.map(p => `<li>${p.name}</li>`).join("");
   });
 
-  document.getElementById("goToMoney").onclick = () => show("money");
+  goToMoney.onclick = () => show("money");
 
-  document.getElementById("startRound").onclick = () => {
+  startRound.onclick = () => {
     socket.emit("admin:startRound", {
       code,
-      money: +document.getElementById("moneyInput").value
+      money: +moneyInput.value
     });
     show("bids");
   };
 
   socket.on("round:bids", bids => {
-    document.getElementById("bidList").innerHTML =
+    bidList.innerHTML =
       bids.map(b => `<li>${b.name}: ${b.amount}</li>`).join("");
   });
 
-  document.getElementById("endRound").onclick = () =>
+  endRound.onclick = () =>
     socket.emit("admin:endRound", code);
 
   socket.on("round:ended", data => {
-    document.getElementById("winnerText").textContent =
+    winnerText.textContent =
       data.winner
         ? `Vincitore: ${data.winner.name}`
         : "Nessuna offerta";
 
-    document.getElementById("nextRound").textContent =
+    nextRound.textContent =
       data.isLast ? "Termina asta" : "Prossimo round";
 
     show("winner");
   });
 
-  document.getElementById("nextRound").onclick = () =>
+  nextRound.onclick = () =>
     socket.emit("admin:confirmNext", code);
 
   socket.on("admin:nextRound", () => show("money"));
