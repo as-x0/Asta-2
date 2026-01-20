@@ -7,25 +7,44 @@
 </head>
 <body>
 
-<h2>Admin</h2>
+<main class="centered">
 
-<input id="rounds" type="number" placeholder="Numero di round" min="1">
-<button id="create">Crea asta</button>
+  <section id="rounds">
+    <h2>Numero di round</h2>
+    <input type="number" id="roundCount" min="1">
+    <button id="createAuction">Conferma</button>
+  </section>
 
-<p>Codice: <strong id="code"></strong></p>
-<div id="qr"></div>
+  <section id="lobby" hidden>
+    <h2>Codice asta</h2>
+    <p id="code"></p>
+    <h3>Giocatori</h3>
+    <ul id="players"></ul>
+  </section>
 
-<input id="income" type="number" placeholder="Soldi del round">
-<button id="startRound">Avvia round</button>
-<button id="endRound">Termina round</button>
+  <section id="money" hidden>
+    <h2>Avvia round</h2>
+    <input type="number" id="moneyInput">
+    <button id="startRound">Avvia round</button>
+  </section>
 
-<h3>Giocatori</h3>
-<ul id="players"></ul>
+  <section id="bids" hidden>
+    <h2>Offerte</h2>
+    <ul id="bidList"></ul>
+    <button id="endRound">Termina round</button>
+  </section>
 
-<h3>Offerte</h3>
-<ul id="offers"></ul>
+  <section id="winner" hidden>
+    <h2 id="winnerText"></h2>
+    <button id="nextRound">Prossimo round</button>
+  </section>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <section id="end" hidden>
+    <h2>Asta terminata</h2>
+  </section>
+
+</main>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
 </body>
