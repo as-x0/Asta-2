@@ -1,41 +1,43 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Giocatore</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Player</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <button id="homeBtn" class="home-button" onclick="window.location.href='/'" title="Torna alla home">
-    🏠
-  </button>
 
-  <main class="centered">
-    <h2>Partecipa a un'asta</h2>
-    <form id="joinForm">
-      <input type="text" id="code" placeholder="Codice dell'asta" required />
-      <input type="text" id="nickname" placeholder="Il tuo nome" required />
-      <button type="submit" class="btn">Entra</button>
-    </form>
+<main class="centered">
 
-    <div id="waiting" hidden>
-      <p>Attendi che l'asta venga avviata...</p>
-    </div>
+  <section id="join">
+    <h2>Partecipa</h2>
+    <input id="codeInput" placeholder="Codice asta">
+    <input id="nameInput" placeholder="Nome">
+    <button id="joinBtn">Entra</button>
+  </section>
 
-    <div id="bidSection" hidden>
-      <p>Il tuo denaro: <strong id="income"></strong></p>
-      <input type="number" id="offerAmount" placeholder="La tua offerta" min="1" />
-      <button id="submitOffer" class="btn">Invia offerta</button>
-    </div>
+  <section id="wait" hidden>
+    <h2>Attendi che l'asta venga avviata</h2>
+  </section>
 
-    <div id="result" hidden></div>
-  </main>
+  <section id="bid" hidden>
+    <p>Soldi disponibili: <strong id="money"></strong></p>
+    <input type="number" id="bidInput">
+    <button id="bidBtn">Offri</button>
+    <ul id="others"></ul>
+  </section>
 
-  <footer class="copyright">&copy; Anna Schiavo</footer>
+  <section id="result" hidden>
+    <h2 id="resultText"></h2>
+  </section>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+  <section id="end" hidden>
+    <h2>Asta terminata</h2>
+  </section>
+
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
