@@ -11,32 +11,33 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const auctions = {};
 
-/* ================= UTIL ================= */
+/* ========= UTILS ========= */
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/* ================= SOCKET ================= */
+/* ========= SOCKET ========= */
 
 io.on("connection", socket => {
 
-  /* CREATE AUCTION */
+  /* ADMIN CREA ASTA */
   socket.on("admin:create", rounds => {
     const code = generateCode();
+
     auctions[code] = {
       admin: socket.id,
       roundsTotal: rounds,
       roundCurrent: 0,
       players: [],
-      bids: [],
-      money: 0
+      bids: []
     };
+
     socket.join(code);
     socket.emit("admin:created", code);
   });
 
-  /* JOIN PLAYER */
+  /* PLAYER ENTRA */
   socket.on("player:join", ({ code, name }) => {
     const auction = auctions[code];
     if (!auction) return socket.emit("error", "Asta non trovata");
@@ -51,13 +52,12 @@ io.on("connection", socket => {
     socket.emit("player:joined");
   });
 
-  /* START ROUND */
+  /* ADMIN AVVIA ROUND */
   socket.on("admin:startRound", ({ code, money }) => {
     const auction = auctions[code];
     if (!auction || socket.id !== auction.admin) return;
 
     auction.roundCurrent++;
-    auction.money = money;
     auction.bids = [];
 
     io.to(code).emit("round:start", {
@@ -66,7 +66,7 @@ io.on("connection", socket => {
     });
   });
 
-  /* SUBMIT BID */
+  /* PLAYER OFFERTA */
   socket.on("player:bid", ({ code, amount }) => {
     const auction = auctions[code];
     if (!auction) return;
@@ -81,20 +81,30 @@ io.on("connection", socket => {
     io.to(code).emit("round:bids", auction.bids);
   });
 
-  /* END ROUND */
+  /* ADMIN TERMINA ROUND */
   socket.on("admin:endRound", code => {
     const auction = auctions[code];
     if (!auction || socket.id !== auction.admin) return;
 
     const winner = auction.bids[0] || null;
+    const isLast = auction.roundCurrent >= auction.roundsTotal;
 
-    io.to(code).emit("round:end", winner);
+    io.to(code).emit("round:ended", { winner, isLast });
+  });
 
-    io.to(code).emit("round:ended", {
-      winner,
-      isLast: auction.roundCurrent >= auction.roundsTotal
-    });
-    );
+  /* ADMIN CONFERMA PROSSIMO */
+  socket.on("admin:confirmNext", code => {
+    const auction = auctions[code];
+    if (!auction || socket.id !== auction.admin) return;
+
+    if (auction.roundCurrent >= auction.roundsTotal) {
+      io.to(code).emit("auction:end");
+      delete auctions[code];
+    } else {
+      socket.emit("admin:nextRound");
+      io.to(code).emit("round:wait");
+    }
+  });
 
   /* DISCONNECT */
   socket.on("disconnect", () => {
@@ -106,9 +116,9 @@ io.on("connection", socket => {
   });
 });
 
-/* ================= START ================= */
+/* ========= START ========= */
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>
-  console.log("Server attivo su porta", PORT)
+  console.log("✅ Server attivo su porta", PORT)
 );
