@@ -5,13 +5,14 @@ function show(id) {
   document.getElementById(id).hidden = false;
 }
 
-/* ================= ADMIN ================= */
+/* ========== ADMIN ========== */
 if (location.pathname.includes("admin")) {
 
   let code = "";
 
   document.getElementById("createAuction").onclick = () => {
-    socket.emit("admin:create",
+    socket.emit(
+      "admin:create",
       +document.getElementById("roundCount").value
     );
   };
@@ -26,9 +27,8 @@ if (location.pathname.includes("admin")) {
     document.getElementById("players").innerHTML =
       players.map(p => `<li>${p.name}</li>`).join("");
   });
-    document.getElementById("goToMoney").onclick = () => {
-    show("money");
-  };
+
+  document.getElementById("goToMoney").onclick = () => show("money");
 
   document.getElementById("startRound").onclick = () => {
     socket.emit("admin:startRound", {
@@ -43,32 +43,29 @@ if (location.pathname.includes("admin")) {
       bids.map(b => `<li>${b.name}: ${b.amount}</li>`).join("");
   });
 
-  document.getElementById("endRound").onclick = () => {
+  document.getElementById("endRound").onclick = () =>
     socket.emit("admin:endRound", code);
-  };
 
   socket.on("round:ended", data => {
     document.getElementById("winnerText").textContent =
       data.winner
         ? `Vincitore: ${data.winner.name}`
         : "Nessuna offerta";
-  
+
     document.getElementById("nextRound").textContent =
       data.isLast ? "Termina asta" : "Prossimo round";
-  
+
     show("winner");
   });
 
-
-  document.getElementById("nextRound").onclick = () => {
+  document.getElementById("nextRound").onclick = () =>
     socket.emit("admin:confirmNext", code);
-  };
 
-
+  socket.on("admin:nextRound", () => show("money"));
   socket.on("auction:end", () => show("end"));
 }
 
-/* ================= PLAYER ================= */
+/* ========== PLAYER ========== */
 if (location.pathname.includes("player")) {
 
   let code = "";
@@ -87,27 +84,28 @@ if (location.pathname.includes("player")) {
     show("bid");
   });
 
-  document.getElementById("bidBtn").onclick = () => {
+  document.getElementById("bidBtn").onclick = () =>
     socket.emit("player:bid", {
       code,
       amount: +document.getElementById("bidInput").value
     });
-  };
 
   socket.on("round:bids", bids => {
     document.getElementById("others").innerHTML =
       bids.map(b => `<li>${b.name}: ${b.amount}</li>`).join("");
   });
 
-  socket.on("round:end", winner => {
+  socket.on("round:ended", data => {
     document.getElementById("resultText").textContent =
-      winner && winner.name === myName
+      data.winner && data.winner.name === myName
         ? "Hai vinto 🎉"
-        : winner
-        ? `Vincitore: ${winner.name}`
+        : data.winner
+        ? `Il vincitore è ${data.winner.name}`
         : "Nessuna offerta";
+
     show("result");
   });
 
+  socket.on("round:wait", () => show("wait"));
   socket.on("auction:end", () => show("end"));
 }
