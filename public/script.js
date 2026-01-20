@@ -1,78 +1,102 @@
 const socket = io();
-const path = window.location.pathname;
 
-/* ========= ADMIN ========= */
+function show(id) {
+  document.querySelectorAll("section").forEach(s => s.hidden = true);
+  document.getElementById(id).hidden = false;
+}
 
-if (path.includes("admin")) {
-  const codeEl = document.getElementById("code");
-  const playersEl = document.getElementById("players");
-  const offersEl = document.getElementById("offers");
+/* ================= ADMIN ================= */
+if (location.pathname.includes("admin")) {
 
-  document.getElementById("create").onclick = () => {
-    const rounds = parseInt(document.getElementById("rounds").value);
-    socket.emit("createAuction", rounds);
+  let code = "";
+
+  document.getElementById("createAuction").onclick = () => {
+    socket.emit("admin:create",
+      +document.getElementById("roundCount").value
+    );
   };
 
-  socket.on("auctionCreated", code => {
-    codeEl.textContent = code;
-    new QRCode(document.getElementById("qr"), code);
+  socket.on("admin:created", c => {
+    code = c;
+    document.getElementById("code").textContent = c;
+    show("lobby");
   });
 
-  socket.on("playerListUpdate", players => {
-    playersEl.innerHTML = players.map(p => `<li>${p.nickname}</li>`).join("");
+  socket.on("admin:players", players => {
+    document.getElementById("players").innerHTML =
+      players.map(p => `<li>${p.name}</li>`).join("");
   });
 
   document.getElementById("startRound").onclick = () => {
-    socket.emit("startRound", {
-      code: codeEl.textContent,
-      income: parseInt(document.getElementById("income").value)
+    socket.emit("admin:startRound", {
+      code,
+      money: +document.getElementById("moneyInput").value
+    });
+    show("bids");
+  };
+
+  socket.on("round:bids", bids => {
+    document.getElementById("bidList").innerHTML =
+      bids.map(b => `<li>${b.name}: ${b.amount}</li>`).join("");
+  });
+
+  document.getElementById("endRound").onclick = () => {
+    socket.emit("admin:endRound", code);
+  };
+
+  socket.on("round:end", winner => {
+    document.getElementById("winnerText").textContent =
+      winner ? `Vincitore: ${winner.name}` : "Nessuna offerta";
+    show("winner");
+  });
+
+  document.getElementById("nextRound").onclick = () => {
+    show("money");
+  };
+
+  socket.on("auction:end", () => show("end"));
+}
+
+/* ================= PLAYER ================= */
+if (location.pathname.includes("player")) {
+
+  let code = "";
+  let myName = "";
+
+  document.getElementById("joinBtn").onclick = () => {
+    code = document.getElementById("codeInput").value.toUpperCase();
+    myName = document.getElementById("nameInput").value;
+    socket.emit("player:join", { code, name: myName });
+  };
+
+  socket.on("player:joined", () => show("wait"));
+
+  socket.on("round:start", data => {
+    document.getElementById("money").textContent = data.money;
+    show("bid");
+  });
+
+  document.getElementById("bidBtn").onclick = () => {
+    socket.emit("player:bid", {
+      code,
+      amount: +document.getElementById("bidInput").value
     });
   };
 
-  document.getElementById("endRound").onclick = () => {
-    socket.emit("endRound", codeEl.textContent);
-  };
-
-  socket.on("updateOffers", offers => {
-    offersEl.innerHTML = offers
-      .sort((a, b) => b.amount - a.amount)
-      .map(o => `<li>${o.nickname}: ${o.amount}</li>`)
-      .join("");
-  });
-}
-
-/* ========= PLAYER ========= */
-
-if (path.includes("player")) {
-  let auctionCode = "";
-
-  document.getElementById("join").onclick = () => {
-    auctionCode = document.getElementById("code").value.toUpperCase();
-    const nickname = document.getElementById("nickname").value;
-    socket.emit("joinAuction", { code: auctionCode, nickname });
-  };
-
-  socket.on("roundStarted", data => {
-    document.getElementById("round").textContent = data.round;
-    document.getElementById("money").textContent = data.money;
+  socket.on("round:bids", bids => {
+    document.getElementById("others").innerHTML =
+      bids.map(b => `<li>${b.name}: ${b.amount}</li>`).join("");
   });
 
-  document.getElementById("sendOffer").onclick = () => {
-    const amount = parseInt(document.getElementById("offer").value);
-    socket.emit("submitOffer", { code: auctionCode, amount });
-  };
-
-  socket.on("updateOffers", offers => {
-    document.getElementById("offers").innerHTML =
-      offers.map(o => `<li>${o.nickname}: ${o.amount}</li>`).join("");
+  socket.on("round:end", winner => {
+    document.getElementById("resultText").textContent =
+      winner && winner.name === myName
+        ? "Hai vinto 🎉"
+        : winner
+        ? `Vincitore: ${winner.name}`
+        : "Nessuna offerta";
+    show("result");
   });
 
-  socket.on("roundEnded", winner => {
-    document.getElementById("result").innerHTML =
-      `Vincitore round: ${winner.nickname} (${winner.amount})`;
-  });
-
-  socket.on("gameEnded", () => {
-    document.getElementById("result").innerHTML += "<br>Gioco terminato";
-  });
+  socket.on("auction:end", () => show("end"));
 }
