@@ -90,11 +90,11 @@ io.on("connection", socket => {
 
     io.to(code).emit("round:end", winner);
 
-    if (auction.roundCurrent >= auction.roundsTotal) {
-      io.to(code).emit("auction:end");
-      delete auctions[code];
-    }
-  });
+    io.to(code).emit("round:ended", {
+      winner,
+      isLast: auction.roundCurrent >= auction.roundsTotal
+    });
+    );
 
   /* DISCONNECT */
   socket.on("disconnect", () => {
