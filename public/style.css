@@ -166,3 +166,10 @@ footer.copyright {
   pointer-events: none;
   z-index: 50;
 }
+
+/* QR code */
+.qr-code {
+  width: 200px;
+  display: block;
+  margin: 1rem auto;
+}
