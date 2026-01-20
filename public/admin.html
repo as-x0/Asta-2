@@ -1,55 +1,50 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <button id="homeBtn" class="home-button" onclick="window.location.href='/'" title="Torna alla home">
+    🏠
+  </button>
+  <main class="centered">
+    <!-- Initial money input -->
+    <section id="createFormSection">
+      <h2>Inserisci la disponibilità iniziale di denaro</h2>
+      <form id="createForm">
+        <input type="number" id="totalIncome" placeholder="Totale disponibile" required min="1" />
+        <button type="submit" class="btn">Crea asta</button>
+      </form>
+    </section>
 
-<main class="centered">
+    <!-- Waiting for players -->
+    <section id="adminPanel" hidden>
+      <p><strong>Codice dell'asta:</strong> <span id="auctionCode"></span></p>
+      <p><strong>Partecipanti (<span id="playerCount">0</span>):</strong></p>
+      <ul id="playersList"></ul>
+      <button id="startAuction" class="btn">Avvia l'asta</button>
+    </section>
 
-  <section id="rounds">
-    <h2>Numero di round</h2>
-    <input type="number" id="roundCount" min="1">
-    <button id="createAuction">Conferma</button>
-  </section>
+    <!-- During auction -->
+    <section id="auctionInProgress" hidden>
+      <h3>Offerte:</h3>
+      <ul id="offersList"></ul>
+      <button id="endAuction" class="btn">Termina l'asta</button>
+    </section>
 
-  <section id="lobby" hidden>
-    <img src="QRasta2.jpg" alt="QR code dell'asta" class="qr-code">
-    <h2>Codice asta</h2>
-    <p id="code"></p>
-
-    <h3>Giocatori</h3>
-    <ul id="players"></ul>
-
-    <button id="goToMoney">Avvia asta</button>
-  </section>
-
-  <section id="money" hidden>
-    <h2>Avvia round</h2>
-    <input type="number" id="moneyInput">
-    <button id="startRound">Avvia round</button>
-  </section>
-
-  <section id="bids" hidden>
-    <h2>Offerte</h2>
-    <ul id="bidList"></ul>
-    <button id="endRound">Termina round</button>
-  </section>
-
-  <section id="winner" hidden>
-    <h2 id="winnerText"></h2>
-    <button id="nextRound"></button>
-  </section>
-
-  <section id="end" hidden>
-    <h2>Asta terminata</h2>
-  </section>
-
-</main>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="script.js"></script>
+    <!-- After auction ended -->
+    <section id="winnerResult" hidden>
+      <h3 id="winnerMessage"></h3>
+    </section>
+  </main>
+  
+  <footer class="copyright">&copy; Anna Schiavo</footer>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
