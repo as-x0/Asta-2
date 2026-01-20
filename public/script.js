@@ -26,6 +26,9 @@ if (location.pathname.includes("admin")) {
     document.getElementById("players").innerHTML =
       players.map(p => `<li>${p.name}</li>`).join("");
   });
+    document.getElementById("goToMoney").onclick = () => {
+    show("money");
+  };
 
   document.getElementById("startRound").onclick = () => {
     socket.emit("admin:startRound", {
