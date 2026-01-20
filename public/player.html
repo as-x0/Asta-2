@@ -2,27 +2,40 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Giocatore</title>
+  <title>Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Giocatore</h2>
+<main class="centered">
 
-<input id="code" placeholder="Codice asta">
-<input id="nickname" placeholder="Nome">
-<button id="join">Entra</button>
+  <section id="join">
+    <h2>Partecipa</h2>
+    <input id="codeInput" placeholder="Codice asta">
+    <input id="nameInput" placeholder="Nome">
+    <button id="joinBtn">Entra</button>
+  </section>
 
-<p>Round: <span id="round">-</span></p>
-<p>Denaro: <span id="money">0</span></p>
+  <section id="wait" hidden>
+    <h2>Attendi che l'asta venga avviata</h2>
+  </section>
 
-<input id="offer" type="number" placeholder="Offerta">
-<button id="sendOffer">Invia offerta</button>
+  <section id="bid" hidden>
+    <p>Soldi disponibili: <strong id="money"></strong></p>
+    <input type="number" id="bidInput">
+    <button id="bidBtn">Offri</button>
+    <ul id="others"></ul>
+  </section>
 
-<h3>Offerte</h3>
-<ul id="offers"></ul>
+  <section id="result" hidden>
+    <h2 id="resultText"></h2>
+  </section>
 
-<div id="result"></div>
+  <section id="end" hidden>
+    <h2>Asta terminata</h2>
+  </section>
+
+</main>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
