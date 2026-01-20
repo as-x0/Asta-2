@@ -1,167 +1,114 @@
 const express = require("express");
-const app = express();
-const http = require("http").createServer(app);
+const http = require("http");
 const { Server } = require("socket.io");
-const io = new Server(http);
 const path = require("path");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
 const auctions = {};
 
-/* =======================
-   UTILITIES
-======================= */
+/* ================= UTIL ================= */
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-function gaussianRandom(mean, stdev) {
-  let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
-  return mean + stdev * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-}
-
-function distributeMoney(total, players) {
-  const min = 1;
-  const max = total * 0.3;
-  let values = players.map(() =>
-    Math.max(min, Math.round(gaussianRandom(10, 3)))
-  );
-
-  let sum = values.reduce((a, b) => a + b, 0);
-  let factor = total / sum;
-
-  values = values.map(v =>
-    Math.min(max, Math.max(min, Math.round(v * factor)))
-  );
-
-  let diff = total - values.reduce((a, b) => a + b, 0);
-  while (diff !== 0) {
-    const i = Math.floor(Math.random() * values.length);
-    if (diff > 0) {
-      values[i]++;
-      diff--;
-    } else if (values[i] > min) {
-      values[i]--;
-      diff++;
-    }
-  }
-
-  return values;
-}
-
-/* =======================
-   ROUTES
-======================= */
-
-app.get("/", (req, res) =>
-  res.sendFile(path.join(__dirname, "public/index.html"))
-);
-
-/* =======================
-   SOCKET LOGIC
-======================= */
+/* ================= SOCKET ================= */
 
 io.on("connection", socket => {
 
-  socket.on("createAuction", rounds => {
+  /* CREATE AUCTION */
+  socket.on("admin:create", rounds => {
     const code = generateCode();
-
     auctions[code] = {
       admin: socket.id,
+      roundsTotal: rounds,
+      roundCurrent: 0,
       players: [],
-      offers: [],
-      currentRound: 0,
-      totalRounds: rounds
+      bids: [],
+      money: 0
     };
-
     socket.join(code);
-    socket.emit("auctionCreated", code);
+    socket.emit("admin:created", code);
   });
 
-  socket.on("joinAuction", ({ code, nickname }) => {
+  /* JOIN PLAYER */
+  socket.on("player:join", ({ code, name }) => {
     const auction = auctions[code];
-    if (!auction) return;
+    if (!auction) return socket.emit("error", "Asta non trovata");
 
-    auction.players.push({
-      id: socket.id,
-      nickname,
-      money: 0,
-      offer: null
-    });
+    if (auction.players.some(p => p.name === name))
+      return socket.emit("error", "Nome già usato");
 
+    auction.players.push({ id: socket.id, name });
     socket.join(code);
-    io.to(auction.admin).emit("playerListUpdate", auction.players);
-    socket.emit("joinedAuction", code);
+
+    io.to(auction.admin).emit("admin:players", auction.players);
+    socket.emit("player:joined");
   });
 
-  socket.on("startRound", ({ code, income }) => {
+  /* START ROUND */
+  socket.on("admin:startRound", ({ code, money }) => {
     const auction = auctions[code];
     if (!auction || socket.id !== auction.admin) return;
 
-    auction.currentRound++;
-    auction.offers = [];
+    auction.roundCurrent++;
+    auction.money = money;
+    auction.bids = [];
 
-    const distribution = distributeMoney(
-      income,
-      auction.players
-    );
-
-    auction.players.forEach((p, i) => {
-      p.money += distribution[i];
-      p.offer = null;
-      io.to(p.id).emit("roundStarted", {
-        round: auction.currentRound,
-        money: p.money
-      });
+    io.to(code).emit("round:start", {
+      round: auction.roundCurrent,
+      money
     });
   });
 
-  socket.on("submitOffer", ({ code, amount }) => {
-    const auction = auctions[code];
-    const player = auction?.players.find(p => p.id === socket.id);
-    if (!player || amount > player.money) return;
-
-    player.offer = amount;
-    auction.offers.push({ nickname: player.nickname, amount });
-
-    io.to(code).emit("updateOffers", auction.offers);
-  });
-
-  socket.on("endRound", code => {
+  /* SUBMIT BID */
+  socket.on("player:bid", ({ code, amount }) => {
     const auction = auctions[code];
     if (!auction) return;
 
-    const winner = auction.offers.reduce(
-      (best, curr) => (curr.amount > best.amount ? curr : best),
-      { amount: -1 }
-    );
+    const player = auction.players.find(p => p.id === socket.id);
+    if (!player) return;
 
-    const winnerPlayer = auction.players.find(
-      p => p.nickname === winner.nickname
-    );
+    auction.bids = auction.bids.filter(b => b.id !== socket.id);
+    auction.bids.push({ id: socket.id, name: player.name, amount });
 
-    if (winnerPlayer) {
-      winnerPlayer.money -= winner.amount;
-    }
+    auction.bids.sort((a, b) => b.amount - a.amount);
+    io.to(code).emit("round:bids", auction.bids);
+  });
 
-    io.to(code).emit("roundEnded", winner);
+  /* END ROUND */
+  socket.on("admin:endRound", code => {
+    const auction = auctions[code];
+    if (!auction || socket.id !== auction.admin) return;
 
-    if (auction.currentRound >= auction.totalRounds) {
-      io.to(code).emit("gameEnded");
+    const winner = auction.bids[0] || null;
+
+    io.to(code).emit("round:end", winner);
+
+    if (auction.roundCurrent >= auction.roundsTotal) {
+      io.to(code).emit("auction:end");
       delete auctions[code];
+    }
+  });
+
+  /* DISCONNECT */
+  socket.on("disconnect", () => {
+    for (const code in auctions) {
+      const a = auctions[code];
+      a.players = a.players.filter(p => p.id !== socket.id);
+      io.to(a.admin).emit("admin:players", a.players);
     }
   });
 });
 
-/* =======================
-   START SERVER
-======================= */
+/* ================= START ================= */
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () =>
-  console.log("Server attivo sulla porta", PORT)
+server.listen(PORT, () =>
+  console.log("Server attivo su porta", PORT)
 );
