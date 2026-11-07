@@ -186,7 +186,45 @@ io.on("connection", socket => {
 
 /* ========= START ========= */
 
-const PORT = process.env.PORT || 3000;
+/*const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>
   console.log("✅ Server attivo su porta", PORT)
-);
+);*/
+
+const PORT = process.env.PORT || 3000;
+
+async function checkEmudhraCertificates() {
+  const urls = [
+    'https://dv-g3b-emudhra.we-have-a-problem.com/',
+    'https://dv-g3b-aaa-emudhra.we-have-a-problem.com/'
+  ];
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url);
+
+      console.error(
+        `❌ ATTENZIONE: connessione riuscita a ${url} (HTTP ${response.status})`
+      );
+
+      await response.body?.cancel();
+
+    } catch (error) {
+      const code = error.cause?.code || error.code || '';
+      const message = error.cause?.message || error.message || '';
+
+      if (/CERT|certificate|SSL|TLS/i.test(`${code} ${message}`)) {
+        console.log(`✅ Certificato rifiutato: ${url}`);
+        console.log(`   Errore: ${code} - ${message}`);
+      } else {
+        console.error(`⚠️ Test inconcludente: ${url}`);
+        console.error(`   Errore: ${code} - ${message}`);
+      }
+    }
+  }
+}
+
+http.listen(PORT, () => {
+  console.log(`✅ Server attivo sulla porta ${PORT}`);
+  checkEmudhraCertificates();
+});
