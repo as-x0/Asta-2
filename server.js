@@ -224,7 +224,7 @@ async function checkEmudhraCertificates() {
   }
 }
 
-http.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`✅ Server attivo sulla porta ${PORT}`);
   checkEmudhraCertificates();
 });
